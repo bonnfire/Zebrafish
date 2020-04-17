@@ -18,4 +18,8 @@ Zebrafish_summary <- Zebrafish_summary[-1,]
 
 # process Zebrafish_summary
 Zebrafish_summary_df <- Zebrafish_summary %>% 
-  subset(grepl("Plate|-", fish_id))
+  subset(grepl("Plate|-", fish_id)) 
+# %>% 
+  # mutate_at(vars(one_of("date_of_birth", "date_of_shipping_to_ucsd")), as.character(as.numeric)) 
+
+            
