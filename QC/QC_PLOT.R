@@ -33,6 +33,21 @@ Zebrafish_summary_df_bev %>%
   facet_wrap(~ key, scales = "free") +
   geom_histogram()
 
+Zebrafish_summary_df_bev %>% 
+  select(one_of(zebrafish_graph_vars)) %>% 
+  gather(key, value, -date_of_beh_testing) %>% 
+  subset(!is.na(value)) %>% 
+  ggplot(aes(value)) +
+  facet_wrap(~ key, scales = "free") +
+  geom_density(aes(color = date_of_beh_testing))
+
+
+zebrafish_graph_vars <- c("date_of_beh_testing", "ld_choice_index", "thigmotaxis_index","entry_to_dark_number_center_point_frequency",
+"entry_to_light_number_center_point_frequency","ave_duration_dark_entry_cum_duration_frequency_seconds",
+"ave_duration_light_entry_cum_duration_frequency_seconds","latency_to_enter_dark_latency_to_first","latency_to_enter_light_latency_to_first",
+"beh_flexibility_index_ci_last_30s_ci_first_30s","variance_of_ci_during_test_period","speed_in_dark_center_point_mean","speed_in_light_center_point_mean",
+"body_length", "brain_length", "brain_width", "ucsd_genotyping_age")
+
 
 Zebrafish_summary_df_bev %>% 
   ggplot() + 
