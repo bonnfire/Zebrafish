@@ -48,6 +48,11 @@ zebrafish_graph_vars <- c("date_of_beh_testing", "ld_choice_index", "thigmotaxis
 "beh_flexibility_index_ci_last_30s_ci_first_30s","variance_of_ci_during_test_period","speed_in_dark_center_point_mean","speed_in_light_center_point_mean",
 "body_length", "brain_length", "brain_width", "ucsd_genotyping_age")
 
+library(corrplot)
+Zebrafish_summary_df_bev_cor <- Zebrafish_summary_df_bev
+names(Zebrafish_summary_df_bev_cor) <- gsub("point|frequency|duration|seconds|", "", names(Zebrafish_summary_df_bev_cor)) %>% gsub("_{2,3}", "", .)
+M<-cor(Zebrafish_summary_df_bev_cor %>% select(which(colSums(is.na(.)) == 0)) %>% select_if(is.numeric))
+corrplot(M, method="circle")
 
 Zebrafish_summary_df_bev %>% 
   ggplot() + 
@@ -62,3 +67,24 @@ Zebrafish_summary_df %>%
 
 setwd("~/Dropbox (Palmer Lab)/Palmer Lab/Bonnie Lin/github/Zebrafish/QC")
 Zebrafish_summary_df %>% get_dupes(fish_id) %>% as.data.frame() %>% openxlsx::write.xlsx(., "Duplicated_FishIDs.xlsx")
+
+
+## check if all id's are represented in the extraction and in the flowcell
+
+# extraction
+setwd("~/Dropbox (Palmer Lab)/Palmer Lab/Bonnie Lin/U01/20190829_WFU_U01_ShippingMaster/Tissues")
+flowcell_files <- list.files(path = ".", pattern = "^\\d{4}-\\d{2}-\\d{2}-Flowcell Sample-Barcode list.*[^)].xlsx")
+
+flowcell <- lapply(flowcell_files, function(x){
+  x <- u01.importxlsx(x)[[1]] %>% 
+    clean_names() 
+  return(x)
+})
+names(flowcell) <- flowcell_files 
+flowcell_df <- flowcell %>% rbindlist(idcol = "flowcell_file", fill = T, use.names = T) %>% 
+  mutate(comment = coalesce(comments_8, comments_9)) %>% 
+  select(-c("x7", "comments_8", "comments_9", "flow_cell_lane")) %>%  # columns that only contain NA or have been coalesced
+  dplyr::filter(grepl("Riptide", library)) %>% 
+  mutate(comment = toupper(comment))
+
+# flowcell
