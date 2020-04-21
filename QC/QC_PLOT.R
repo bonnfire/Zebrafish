@@ -69,6 +69,8 @@ setwd("~/Dropbox (Palmer Lab)/Palmer Lab/Bonnie Lin/github/Zebrafish/QC")
 Zebrafish_Guo_xl %>% get_dupes(fish_id) %>% as.data.frame() %>% openxlsx::write.xlsx(., "Duplicated_FishIDs.xlsx")
 
 
+
+## QC 
 ## check if all id's are represented in the extraction and in the flowcell
 
 
@@ -105,3 +107,17 @@ flowcell_df %>% select(sample_id) %>% left_join(., Zebrafish_Guo_xl[, c("fish_id
 
 
 # in "manifest" but not in flowcell
+
+
+## what is the plan for missing columns
+Zebrafish_Guo_xl_bev %>% 
+  select(one_of(zebrafish_graph_vars)) %>% 
+  gather(key, value, -date_of_beh_testing) %>% 
+  subset(is.na(value)) %>% select(key) %>% unique
+
+## qc the id's from the flowcell
+Zebrafish_Guo_xl %>% select(fish_id) %>% mutate(date = str_extract(fish_id,"(\\d+)") %>% lubridate::ymd()) %>% select(date) %>% unique
+
+
+## birthdate to startdate qc 
+Zebrafish_Guo_xl 
