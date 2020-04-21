@@ -16,7 +16,7 @@ dead_zebrafish_indices <- Zebrafish_formats_cellbycell[Zebrafish_formats_cellbyc
 # Zebrafish_formats_cellbycell %>% subset(col == 1 & row %in% dead_zebrafish_indices)
 
 # filter out fish without data 
-Zebrafish_summary_df_bev <- Zebrafish_summary_df %>% 
+Zebrafish_Guo_xl_bev <- Zebrafish_Guo_xl %>% 
   mutate_at(vars(-one_of("z_number", "fish_id", "dna_collected_y_n", "unique_plate_id", "well_id", "date_of_birth", "date_of_beh_testing", "cross_no", "mother", "father", "gender", "date_of_shipping_to_ucsd")), as.numeric) %>% 
   subset(!is.na(ld_choice_index)) 
 
@@ -26,14 +26,14 @@ library(tidyr)
 library(ggplot2)
 
 
-Zebrafish_summary_df_bev %>%
+Zebrafish_Guo_xl_bev %>%
   keep(is.numeric) %>% 
   gather() %>% 
   ggplot(aes(value)) +
   facet_wrap(~ key, scales = "free") +
   geom_histogram()
 
-Zebrafish_summary_df_bev %>% 
+Zebrafish_Guo_xl_bev %>% 
   select(one_of(zebrafish_graph_vars)) %>% 
   gather(key, value, -date_of_beh_testing) %>% 
   subset(!is.na(value)) %>% 
@@ -49,42 +49,59 @@ zebrafish_graph_vars <- c("date_of_beh_testing", "ld_choice_index", "thigmotaxis
 "body_length", "brain_length", "brain_width", "ucsd_genotyping_age")
 
 library(corrplot)
-Zebrafish_summary_df_bev_cor <- Zebrafish_summary_df_bev
-names(Zebrafish_summary_df_bev_cor) <- gsub("point|frequency|duration|seconds|", "", names(Zebrafish_summary_df_bev_cor)) %>% gsub("_{2,3}", "", .)
-M<-cor(Zebrafish_summary_df_bev_cor %>% select(which(colSums(is.na(.)) == 0)) %>% select_if(is.numeric))
+Zebrafish_Guo_xl_bev_cor <- Zebrafish_Guo_xl_bev
+names(Zebrafish_Guo_xl_bev_cor) <- gsub("point|frequency|duration|seconds|", "", names(Zebrafish_Guo_xl_bev_cor)) %>% gsub("_{2,3}", "", .)
+M<-cor(Zebrafish_Guo_xl_bev_cor %>% select(which(colSums(is.na(.)) == 0)) %>% select_if(is.numeric))
 corrplot(M, method="circle")
 
-Zebrafish_summary_df_bev %>% 
+Zebrafish_Guo_xl_bev %>% 
   ggplot() + 
   geom_histogram() + 
   facet_grid(~ date_of_beh_testing)
 
-Zebrafish_summary_df %>% 
+Zebrafish_Guo_xl %>% 
   ggplot() + 
   geom_histogram() + 
   facet_grid(~ date_of_beh_testing)
 
 
 setwd("~/Dropbox (Palmer Lab)/Palmer Lab/Bonnie Lin/github/Zebrafish/QC")
-Zebrafish_summary_df %>% get_dupes(fish_id) %>% as.data.frame() %>% openxlsx::write.xlsx(., "Duplicated_FishIDs.xlsx")
+Zebrafish_Guo_xl %>% get_dupes(fish_id) %>% as.data.frame() %>% openxlsx::write.xlsx(., "Duplicated_FishIDs.xlsx")
 
 
 ## check if all id's are represented in the extraction and in the flowcell
 
+
+Zebrafish_Guo_xl
+
 # extraction
+
+
+# flowcell
+
 setwd("~/Dropbox (Palmer Lab)/Palmer Lab/Bonnie Lin/U01/20190829_WFU_U01_ShippingMaster/Tissues")
 flowcell_files <- list.files(path = ".", pattern = "^\\d{4}-\\d{2}-\\d{2}-Flowcell Sample-Barcode list.*[^)].xlsx")
 
 flowcell <- lapply(flowcell_files, function(x){
-  x <- u01.importxlsx(x)[[1]] %>% 
-    clean_names() 
+  x <- u01.importxlsx(x)[[1]] 
+  names(x) <- x[1,] %>% make_clean_names()
+  x <- x[-1, ]
   return(x)
 })
 names(flowcell) <- flowcell_files 
 flowcell_df <- flowcell %>% rbindlist(idcol = "flowcell_file", fill = T, use.names = T) %>% 
-  mutate(comment = coalesce(comments_8, comments_9)) %>% 
-  select(-c("x7", "comments_8", "comments_9", "flow_cell_lane")) %>%  # columns that only contain NA or have been coalesced
-  dplyr::filter(grepl("Riptide", library)) %>% 
-  mutate(comment = toupper(comment))
+  mutate(comment = coalesce(comments, comments_2)) %>% 
+  select(-c("na", "comments", "comments_2", "flow_cell_lane")) %>%  # columns that only contain NA or have been coalesced
+  mutate(comment = toupper(comment)) %>% 
+  subset(grepl("Plate", sample_id))
 
-# flowcell
+
+# in flowcell but not in "manifest" 
+flowcell_df %>% select(sample_id) %>% left_join(., Zebrafish_Guo_xl[, c("fish_id", "dna_collected_y_n")] %>% mutate(fish_id = gsub("-", "_", fish_id)), by = c("sample_id" = "fish_id")) 
+
+
+# in flowcell but not in "manifest" 
+flowcell_df %>% select(sample_id) %>% left_join(., Zebrafish_Guo_xl[, c("fish_id", "dna_collected_y_n")] %>% mutate(fish_id = gsub("-", "_", fish_id)), by = c("sample_id" = "fish_id")) 
+
+
+# in "manifest" but not in flowcell
