@@ -134,4 +134,12 @@ Zebrafish_Guo_xl %>% select(fish_id) %>% mutate(date = str_extract(fish_id,"(\\d
 
 
 ## birthdate to startdate qc 
-Zebrafish_Guo_xl 
+Zebrafish_Guo_xl %>% 
+  mutate(date_of_birth = lubridate::ymd(date_of_birth),
+         date_of_beh_testing_start = str_extract(date_of_beh_testing, "\\d+") %>% lubridate::ymd()) %>%
+  mutate(start_age = difftime(date_of_beh_testing_start, date_of_birth, units = "days") %>% as.numeric()) %>% 
+  select(fish_id, date_of_birth, date_of_beh_testing_start, start_age) %>% 
+  mutate(start_age = as.character(start_age)) %>% 
+  ggplot(., aes(x = start_age)) + 
+  geom_histogram(stat = "count")
+# all fish are run at 6 days old 
