@@ -108,22 +108,20 @@ flowcell_df <- flowcell_df %>%
   select(-one_of("date", "plate", "well", "letter", "number")) %>% 
   select(flowcell_file, sample_id, everything())
 
-
+# should be 91 unique sample id's 
 # in flowcell but not in "manifest" 
 flowcell_df %>% select(sample_id) %>% left_join(.,
                          Zebrafish_Guo_xl[, c("fish_id", "dna_collected_y_n")],
                          by = c("sample_id" = "fish_id")) %>% 
   subset(is.na(dna_collected_y_n))
-
-
-# in flowcell but not in "manifest" 
-flowcell_df %>% select(sample_id) %>% left_join(.,
-                                                Zebrafish_Guo_xl[, c("fish_id", "dna_collected_y_n")] %>% mutate(fish_id = gsub("-", "_", fish_id)),
-                                                by = c("sample_id" = "fish_id"))
-
+# 0 animals
 
 # in "manifest" but not in flowcell
-
+Zebrafish_Guo_xl[, c("fish_id", "dna_collected_y_n")] %>% left_join(.,
+                                                                    flowcell_df %>% select(sample_id, barcode),
+                                                                    by = c("fish_id" = "sample_id")) %>% 
+  subset(is.na(barcode)) 
+# 1977 animals 
 
 ## what is the plan for missing columns
 Zebrafish_Guo_xl_bev %>% 
