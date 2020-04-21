@@ -97,13 +97,29 @@ flowcell_df <- flowcell %>% rbindlist(idcol = "flowcell_file", fill = T, use.nam
   mutate(comment = toupper(comment)) %>% 
   subset(grepl("Plate", sample_id))
 
+## NOTE THAT FLOWCELL ID HAS SOME CHANGES THAT NEED TO BE MADE 
+## CHANGE _ TO - AND FLIP THE ORDER OF THE LAST TWO LETTER AND NUMBER 
+## FLOWCELL
+flowcell_df <- flowcell_df %>% 
+  separate(sample_id, into = c("date", "plate", "well"), sep = "_") %>% 
+  mutate(letter = str_extract(well, "[[:alpha:]]+"),
+         number = str_extract(well, "[[:digit:]]+")) %>% 
+  mutate(sample_id = paste0(date, "-", plate, "-", number, letter)) %>% 
+  select(-one_of("date", "plate", "well", "letter", "number")) %>% 
+  select(flowcell_file, sample_id, everything())
+
 
 # in flowcell but not in "manifest" 
-flowcell_df %>% select(sample_id) %>% left_join(., Zebrafish_Guo_xl[, c("fish_id", "dna_collected_y_n")] %>% mutate(fish_id = gsub("-", "_", fish_id)), by = c("sample_id" = "fish_id")) 
+flowcell_df %>% select(sample_id) %>% left_join(.,
+                         Zebrafish_Guo_xl[, c("fish_id", "dna_collected_y_n")],
+                         by = c("sample_id" = "fish_id")) %>% 
+  subset(is.na(dna_collected_y_n))
 
 
 # in flowcell but not in "manifest" 
-flowcell_df %>% select(sample_id) %>% left_join(., Zebrafish_Guo_xl[, c("fish_id", "dna_collected_y_n")] %>% mutate(fish_id = gsub("-", "_", fish_id)), by = c("sample_id" = "fish_id")) 
+flowcell_df %>% select(sample_id) %>% left_join(.,
+                                                Zebrafish_Guo_xl[, c("fish_id", "dna_collected_y_n")] %>% mutate(fish_id = gsub("-", "_", fish_id)),
+                                                by = c("sample_id" = "fish_id"))
 
 
 # in "manifest" but not in flowcell
