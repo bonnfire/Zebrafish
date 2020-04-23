@@ -48,22 +48,6 @@ zebrafish_graph_vars <- c("date_of_beh_testing", "ld_choice_index", "thigmotaxis
 "beh_flexibility_index_ci_last_30s_ci_first_30s","variance_of_ci_during_test_period","speed_in_dark_center_point_mean","speed_in_light_center_point_mean",
 "body_length", "brain_length", "brain_width", "ucsd_genotyping_age")
 
-library(corrplot)
-Zebrafish_Guo_xl_bev_cor <- Zebrafish_Guo_xl_bev
-names(Zebrafish_Guo_xl_bev_cor) <- gsub("point|frequency|duration|seconds|", "", names(Zebrafish_Guo_xl_bev_cor)) %>% gsub("_{2,3}", "", .)
-M<-cor(Zebrafish_Guo_xl_bev_cor %>% select(which(colSums(is.na(.)) == 0)) %>% select_if(is.numeric))
-corrplot(M, method="circle")
-
-Zebrafish_Guo_xl_bev %>% 
-  ggplot() + 
-  geom_histogram() + 
-  facet_grid(~ date_of_beh_testing)
-
-Zebrafish_Guo_xl %>% 
-  ggplot() + 
-  geom_histogram() + 
-  facet_grid(~ date_of_beh_testing)
-
 
 setwd("~/Dropbox (Palmer Lab)/Palmer Lab/Bonnie Lin/github/Zebrafish/QC")
 Zebrafish_Guo_xl %>% get_dupes(fish_id) %>% as.data.frame() %>% openxlsx::write.xlsx(., "Duplicated_FishIDs.xlsx")
@@ -143,3 +127,24 @@ Zebrafish_Guo_xl %>%
   ggplot(., aes(x = start_age)) + 
   geom_histogram(stat = "count")
 # all fish are run at 6 days old 
+
+## check for parent diversity for kinship relatedness 
+
+## corrplot 
+
+library(corrplot)
+Zebrafish_Guo_xl_bev_cor <- Zebrafish_Guo_xl_bev
+names(Zebrafish_Guo_xl_bev_cor) <- gsub("point|frequency|duration|seconds|", "", names(Zebrafish_Guo_xl_bev_cor)) %>% gsub("_{2,3}", "", .)
+M<-cor(Zebrafish_Guo_xl_bev_cor %>% select(which(colSums(is.na(.)) == 0)) %>% select_if(is.numeric))
+corrplot(M, method="circle")
+
+
+
+
+
+
+
+
+
+#### UPLOAD TO DATABASE 
+
