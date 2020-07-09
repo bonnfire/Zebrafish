@@ -6,7 +6,7 @@ library(data.table)
 
 setwd("~/Dropbox (Palmer Lab)/Palmer Lab/Khai-Minh Nguyen/Riptide library prep")
 library_prep_files <- list.files(recursive = T, full.names = T)
-zebrafish_libprep_files <- grep(".*Riptide 21-30.*.xlsx", library_prep_files, value = T)
+zebrafish_libprep_files <- grep(".*Riptide.*/Riptide[- ]?(0[79]|1[078]|2[1-9]|30).*.xlsx", library_prep_files, value = T)
 
 zebrafish_sample_info <- lapply(zebrafish_libprep_files, function(x){
   
