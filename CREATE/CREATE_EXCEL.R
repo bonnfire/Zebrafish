@@ -9,9 +9,9 @@ Zebrafish_Guo_xl <- Zebrafish_Guo_xl_orig %>%
   clean_names() %>% 
   subset(grepl("Plate|-", fish_id)) %>% 
   subset(!is.na(date_of_beh_testing)) %>% 
-  mutate(fish_id = gsub("-", "_", fish_id), #to match the flowcell
-         fish_id = paste0(gsub("_\\d+", "_", fish_id), str_extract(fish_id, "[^_]+(?=\\D$)")),
-         dna_collected_y_n = toupper(dna_collected_y_n),
+  # mutate(fish_id = gsub("-", "_", fish_id), #to match the flowcell 09/22/2020 EVERYTHING SHOULD MATCH PHENOTYPES 
+  #        fish_id = paste0(gsub("_\\d+", "_", fish_id), str_extract(fish_id, "[^_]+(?=\\D$)")),
+         mutate(dna_collected_y_n = toupper(dna_collected_y_n),
          dna_collected_y_n = replace(dna_collected_y_n, dna_collected_y_n == "Y\nY\nY\nY", "Y"))
 
 Zebrafish_Guo_xl %>% get_dupes(fish_id) %>% subset(!is.na(ld_choice_index))%>% select(well_id, fish_id) 
