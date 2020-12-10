@@ -5,10 +5,12 @@
 library(gsheet)
 
 Zebrafish_Guo_xl_orig <- gsheet::gsheet2tbl('https://docs.google.com/spreadsheets/d/1NMMBpsPf4VDDckpZL2Qwrro5f3hqXpCTGGYYFKP4Hxc/edit#gid=155483271')
-Zebrafish_Guo_xl <- Zebrafish_Guo_xl_orig %>%
-  clean_names() %>% 
-  subset(grepl("Plate|-", fish_id)) %>% 
-  subset(!is.na(date_of_beh_testing)) %>% 
+Zebrafish_Guo_xl_wcleannames <- Zebrafish_Guo_xl_orig %>%
+  clean_names() 
+
+Zebrafish_Guo_xl <- Zebrafish_Guo_xl_wcleannames %>% # start subsetting to get larvae phenotype
+  subset(grepl("Plate", fish_id)) %>% 
+  # subset(!is.na(date_of_beh_testing)) %>% 
   # mutate(fish_id = gsub("-", "_", fish_id), #to match the flowcell 09/22/2020 EVERYTHING SHOULD MATCH PHENOTYPES 
   #        fish_id = paste0(gsub("_\\d+", "_", fish_id), str_extract(fish_id, "[^_]+(?=\\D$)")),
          mutate(dna_collected_y_n = toupper(dna_collected_y_n),
@@ -35,7 +37,7 @@ convertplate.todf <- function(x){
   return(df_total)
 }
 
-plates_df_1 <- convertplate.todf(plates[6:13, c(2:17, 19:38)])
+plates_df_1 <- convertplate.todf(plates[6:13, c(2:37)])
 
 
 # current breeders
