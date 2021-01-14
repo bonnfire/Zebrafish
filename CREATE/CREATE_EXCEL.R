@@ -37,7 +37,13 @@ convertplate.todf <- function(x){
   return(df_total)
 }
 
-plates_df_1 <- convertplate.todf(plates[6:13, c(2:37)])
+
+plates_df_1 <- convertplate.todf(plates[6:13, c(2:37)]) 
+plates_df_2 <- convertplate.todf(plates[17:24, c(2:37)])
+plates_df_3 <- convertplate.todf(plates[28:35, c(2:37)])
+plates_df_4 <- convertplate.todf(plates[39:46, c(2:37)])
+
+
 
 
 # current breeders
