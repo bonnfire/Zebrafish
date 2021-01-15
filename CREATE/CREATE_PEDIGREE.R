@@ -21,9 +21,15 @@ pedigree_fish %>%
   # subset(mother %in% unique(.$father)|father %in% unique(.$mother)) %>% # check if there are swaps
   write.csv("~/Dropbox (Palmer Lab)/Palmer Lab/Bonnie Lin/github/Zebrafish/CREATE/pedigree_fish_n3568_20210114.csv", row.names = F)
 
-  Zebrafish_Guo_xl %>% 
-    distinct(fish_id, mother, father) %>% 
-    mutate_all(~gsub("-", "_", .)) %>% 
+Zebrafish_Guo_xl %>% 
+  distinct(fish_id, mother, father) %>% 
+  mutate_all(~gsub("-", "_", .)) %>% 
   # subset(mother %in% unique(.$father)|father %in% unique(.$mother)|mother == father) %>% 
-  write.csv("~/Dropbox (Palmer Lab)/Palmer Lab/Bonnie Lin/github/Zebrafish/CREATE/pedigree_fish_n6016_20210114.csv", row.names = F)
+  rbind(read.csv("~/Dropbox (Palmer Lab)/Palmer Lab/Bonnie Lin/github/PalmerLab_genotyping/CREATE/sample_barcode_lib_01052021.csv") %>% mutate_all(as.character) %>% 
+          subset(grepl("guo", project_name)) %>% mutate(rfid = gsub("-", "_", rfid)) %>% select("fish_id" = rfid) %>% mutate(mother = "NA", father = "NA") %>% 
+          subset(!(fish_id %in% gsub("-", "_", Zebrafish_Guo_xl$fish_id))),.) %>% write.csv("~/Dropbox (Palmer Lab)/Palmer Lab/Bonnie Lin/github/Zebrafish/CREATE/pedigree_fish_n6187_20210114.csv", row.names = F)
 
+
+read.csv("~/Dropbox (Palmer Lab)/Palmer Lab/Bonnie Lin/github/PalmerLab_genotyping/CREATE/sample_barcode_lib_01052021.csv") %>% mutate_all(as.character) %>% subset(grepl("guo", project_name)) %>% mutate(rfid = gsub("-", "_", rfid)) %>% left_join(Zebrafish_Guo_xl %>% 
+                                                                                                                                                                                                                                                          distinct(fish_id, mother, father) %>% 
+                                                                                                                                                                                                                                                          mutate_all(~gsub("-", "_", .)), by = c("rfid" = "fish_id")) %>% subset(is.na(mother)|is.na(father)) %>% select(rfid) %>% write.csv("~/Dropbox (Palmer Lab)/Palmer Lab/Bonnie Lin/github/Zebrafish/QC/genotyped_no_pedi_n171.csv", row.names = F)
