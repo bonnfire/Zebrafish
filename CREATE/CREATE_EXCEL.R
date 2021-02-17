@@ -8,39 +8,60 @@ Zebrafish_Guo_xl_orig <- gsheet::gsheet2tbl('https://docs.google.com/spreadsheet
 Zebrafish_Guo_xl_wcleannames <- Zebrafish_Guo_xl_orig %>%
   clean_names() 
 
-Zebrafish_Guo_exclude <- Zebrafish_Guo_xl_wcleannames %>% 
+Zebrafish_Guo_exclude <- Zebrafish_Guo_xl_wcleannames %>% # exclude the animals that do not have dna collected
   subset(grepl("Plate", fish_id, ignore.case = T)) %>% 
   mutate(dna_collected_y_n = toupper(dna_collected_y_n),
          dna_collected_y_n = replace(dna_collected_y_n, dna_collected_y_n == "Y\nY\nY\nY", "Y")) %>% 
   subset(dna_collected_y_n == "N") %>% 
   mutate(rfid = gsub("-", "_", fish_id))
 
-plates_wcasper <- c("20200114", "20200121", "20200128", "")
-plates_wocasper <- c("20191209", "20191217", "20200204", "")
+## read in guo maintained sheet for casper
+plates_casper_xl <- gsheet::gsheet2tbl('https://docs.google.com/spreadsheets/d/1NMMBpsPf4VDDckpZL2Qwrro5f3hqXpCTGGYYFKP4Hxc/edit#gid=1398440230')
+plates_casper_xl_df <- plates_casper_xl %>% 
+  clean_names() 
+plates_casper_xl_df <- plates_casper_xl_df %>% 
+  mutate(casper = ifelse(grepl("No casper", comment)|grepl("20201215|20201222", plate_id), 0, 1)) # exception for grepl plate_id as noted in Slack
 
-
-plates_casper <- Zebrafish_Guo_xl %>% 
-  distinct(unique_plate_id) %>% 
-  mutate( unique_date = gsub("-.*", "", unique_plate_id)) %>% 
-  distinct(unique_date) %>% 
-  cbind(data.frame(casper = c(0, 0, 1, 1, 1, 0, 0, 0, 1, NA, NA, NA, NA, NA, NA, NA, NA,
-                              NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA,
-                              NA, NA))) # 1 has casper, 0 doesn't have casper 
+# plates_casper <- Zebrafish_Guo_xl %>% 
+#   distinct(unique_plate_id) %>% 
+#   mutate( unique_date = gsub("-.*", "", unique_plate_id)) %>% 
+#   distinct(unique_date) %>% 
+#   cbind(data.frame(casper = c(0, 0, 1, 1, 1, 0, 0, 0, 1, NA, NA, NA, NA, NA, NA, NA, NA,
+#                               NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA,
+#                               NA, NA))) # 1 has casper, 0 doesn't have casper 
 
 gh_12 <- Zebrafish_Guo_xl %>% 
   distinct(unique_plate_id) %>% 
   slice(rep(1:n(), each = 2)) %>% 
   cbind(data.frame(letter = rep(c("12G","12H"), each = 1, times =35))) %>% 
+  mutate(letter = as.character(letter)) %>% 
   mutate(rfid = paste0(unique_plate_id, "-", letter)) %>% 
-  mutate(unique_date = gsub("-.*", "", unique_plate_id)) %>% 
-  left_join(plates_casper, by = "unique_date") %>% 
+  left_join(plates_casper_xl_df, by = c("unique_plate_id" = "plate_id")) %>% 
+  # mutate(unique_date = gsub("-.*", "", unique_plate_id)) %>% 
+  # left_join(plates_casper, by = "unique_date") %>% 
   left_join(Zebrafish_Guo_xl %>% select(fish_id, mother, father, dna_collected_y_n), by = c("rfid" = "fish_id")) %>% 
-  mutate(gh_cat = case_when(
-    casper == 0 & !is.na(mother)&!is.na(father) ~ "EK fish",
-    casper == 1 ~ "casper", 
-    casper == 0 & is.na(mother)&is.na(father) ~ "empty well", 
-    TRUE ~ NA_character_
-  ))
+    mutate(gh_cat = case_when(
+      casper == 0 & !is.na(mother)&!is.na(father) ~ "EK fish",
+      casper == 1 ~ "casper", 
+      casper == 0 & is.na(mother)&is.na(father) ~ "empty well", 
+      TRUE ~ NA_character_
+    )) %>% 
+    mutate(comment = ifelse(grepl("20191209-Plate1|20191217-Plate1", unique_plate_id), "these plates' caspers were placed in Plate2 as 12E and 12F", comment),
+           casper = ifelse(grepl("20191209-Plate1|20191217-Plate1", unique_plate_id), "0", casper),
+           casper = ifelse(grepl("20191209-Plate2|20191217-Plate2", unique_plate_id), "1", casper))
+  
+gh_12 <- gh_12 %>% 
+  rbind(gh_12 %>% 
+          subset(grepl("20191209-Plate2|20191217-Plate2", unique_plate_id)) %>% 
+          mutate(letter = replace(letter, rfid == "20191209-Plate2-12G", "12E"),
+                 rfid = replace(rfid, rfid == "20191209-Plate2-12G", "20191209-Plate2-12E"), 
+                 letter = replace(letter, rfid == "20191209-Plate2-12H", "12F"), 
+                 rfid = replace(rfid, rfid == "20191209-Plate2-12H", "20191209-Plate2-12F"), 
+                 letter = replace(letter, rfid == "20191217-Plate2-12G", "12E"), 
+                 rfid = replace(rfid, rfid == "20191217-Plate2-12G", "20191217-Plate2-12E"), 
+                 letter = replace(letter, rfid == "20191217-Plate2-12H", "12F"), 
+                 rfid = replace(rfid, rfid == "20191217-Plate2-12H", "20191217-Plate2-12F"))) 
+
 
 
 
