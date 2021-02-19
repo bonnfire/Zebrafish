@@ -20,15 +20,7 @@ plates_casper_xl <- gsheet::gsheet2tbl('https://docs.google.com/spreadsheets/d/1
 plates_casper_xl_df <- plates_casper_xl %>% 
   clean_names() 
 plates_casper_xl_df <- plates_casper_xl_df %>% 
-  mutate(casper = ifelse(grepl("No casper", comment)|grepl("20201215|20201222", plate_id), 0, 1)) # exception for grepl plate_id as noted in Slack
-
-# plates_casper <- Zebrafish_Guo_xl %>% 
-#   distinct(unique_plate_id) %>% 
-#   mutate( unique_date = gsub("-.*", "", unique_plate_id)) %>% 
-#   distinct(unique_date) %>% 
-#   cbind(data.frame(casper = c(0, 0, 1, 1, 1, 0, 0, 0, 1, NA, NA, NA, NA, NA, NA, NA, NA,
-#                               NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA,
-#                               NA, NA))) # 1 has casper, 0 doesn't have casper 
+  mutate(casper = ifelse(grepl("No casper", comment)|grepl("20201215|20201222", plate_id)|grepl("FC20200305|Fin", plate_id), 0, 1)) # exception for grepl plate_id as noted in Slack
 
 gh_12 <- Zebrafish_Guo_xl %>% 
   distinct(unique_plate_id) %>% 
@@ -36,20 +28,15 @@ gh_12 <- Zebrafish_Guo_xl %>%
   cbind(data.frame(letter = rep(c("12G","12H"), each = 1, times =35))) %>% 
   mutate(letter = as.character(letter)) %>% 
   mutate(rfid = paste0(unique_plate_id, "-", letter)) %>% 
-  left_join(plates_casper_xl_df, by = c("unique_plate_id" = "plate_id")) %>% 
+  full_join(plates_casper_xl_df, by = c("unique_plate_id" = "plate_id")) %>% 
   # mutate(unique_date = gsub("-.*", "", unique_plate_id)) %>% 
   # left_join(plates_casper, by = "unique_date") %>% 
   left_join(Zebrafish_Guo_xl %>% select(fish_id, mother, father, dna_collected_y_n), by = c("rfid" = "fish_id")) %>% 
-    mutate(gh_cat = case_when(
-      casper == 0 & !is.na(mother)&!is.na(father) ~ "EK fish",
-      casper == 1 ~ "casper", 
-      casper == 0 & is.na(mother)&is.na(father) ~ "empty well", 
-      TRUE ~ NA_character_
-    )) %>% 
-    mutate(comment = ifelse(grepl("20191209-Plate1|20191217-Plate1", unique_plate_id), "these plates' caspers were placed in Plate2 as 12E and 12F", comment),
-           casper = ifelse(grepl("20191209-Plate1|20191217-Plate1", unique_plate_id), "0", casper),
-           casper = ifelse(grepl("20191209-Plate2|20191217-Plate2", unique_plate_id), "1", casper))
-  
+  mutate(comment = ifelse(grepl("20191209-Plate1|20191217-Plate1", unique_plate_id), "these plates' caspers were placed in Plate2 as 12E and 12F", comment),
+         casper = ifelse(grepl("20191209-Plate1|20191217-Plate1", unique_plate_id), "0", casper),
+         casper = ifelse(grepl("20191209-Plate2|20191217-Plate2", unique_plate_id), "1", casper))
+
+# add the 12E and 12F cases for four plates 
 gh_12 <- gh_12 %>% 
   rbind(gh_12 %>% 
           subset(grepl("20191209-Plate2|20191217-Plate2", unique_plate_id)) %>% 
@@ -60,9 +47,19 @@ gh_12 <- gh_12 %>%
                  letter = replace(letter, rfid == "20191217-Plate2-12G", "12E"), 
                  rfid = replace(rfid, rfid == "20191217-Plate2-12G", "20191217-Plate2-12E"), 
                  letter = replace(letter, rfid == "20191217-Plate2-12H", "12F"), 
-                 rfid = replace(rfid, rfid == "20191217-Plate2-12H", "20191217-Plate2-12F"))) 
-
-
+                 rfid = replace(rfid, rfid == "20191217-Plate2-12H", "20191217-Plate2-12F"))) %>%
+  mutate(casper = ifelse(grepl("20200114-Plate|20200121-Plate|20200721-Plate|20191209-Plate2|20191217-Plate2", rfid), 1, casper),
+         casper = ifelse(grepl("20200811", rfid), 0, casper)) %>% 
+  mutate(gh_cat = case_when(
+    casper == 0 & !is.na(mother)&!is.na(father)&!grepl("FC20200305|Fin", unique_plate_id) ~ "EK fish",
+    casper == 0 & is.na(mother)&is.na(father)&grepl("FC20200305|Fin", unique_plate_id) ~ "parent DNA",
+    casper == 1 ~ "casper", 
+    casper == 0 & is.na(mother)&is.na(father) ~ "empty well", 
+    TRUE ~ NA_character_
+  )) 
+  
+openxlsx::write.xlsx(gh_12, "~/Dropbox (Palmer Lab)/Palmer Lab/Bonnie Lin/github/Zebrafish/CREATE/gh_classification_n147.xlsx")
+gh_12$gh_cat %>% table()
 
 
 read.csv("~/Dropbox (Palmer Lab)/Palmer Lab/Bonnie Lin/github/PalmerLab_genotyping/CREATE/db_samplebarcodelib_02102021_n4403.csv") %>% mutate_all(as.character) %>% subset(grepl("guo", project_name)&library_name == "UMich08_Fish") %>% mutate(comment = "play set")
