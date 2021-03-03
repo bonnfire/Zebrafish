@@ -8,6 +8,9 @@ Zebrafish_Guo_xl_orig <- gsheet::gsheet2tbl('https://docs.google.com/spreadsheet
 Zebrafish_Guo_xl_wcleannames <- Zebrafish_Guo_xl_orig %>%
   clean_names() 
 
+
+
+
 Zebrafish_Guo_exclude <- Zebrafish_Guo_xl_wcleannames %>% # exclude the animals that do not have dna collected
   subset(grepl("Plate", fish_id, ignore.case = T)) %>% 
   mutate(dna_collected_y_n = toupper(dna_collected_y_n),
@@ -59,6 +62,13 @@ gh_12 <- gh_12 %>%
   )) 
   
 openxlsx::write.xlsx(gh_12, "~/Dropbox (Palmer Lab)/Palmer Lab/Bonnie Lin/github/Zebrafish/CREATE/gh_classification_n147.xlsx")
+
+# for db 
+gh_12 %>% 
+  subset(!is.na(rfid)) %>% # remove the parent dna plates 
+  mutate(rfid = gsub("-", "_", rfid)) %>% 
+  write.csv("~/Desktop/Database/csv files/r01_su_guo/gh_n144.csv", row.names = F)
+  
 gh_12$gh_cat %>% table()
 
 
@@ -112,9 +122,20 @@ convertplate.todf <- function(x){
 
 
 plates_df_1 <- convertplate.todf(plates[6:13, c(2:37)]) 
-plates_df_2 <- convertplate.todf(plates[17:24, c(2:37)])
-plates_df_3 <- convertplate.todf(plates[28:35, c(2:37)])
-plates_df_4 <- convertplate.todf(plates[39:46, c(2:37)])
+plates_df_2 <- convertplate.todf(plates[16:23, c(2:37)])
+plates_df_3 <- convertplate.todf(plates[26:33, c(2:37)])
+plates_df_4 <- convertplate.todf(plates[36:43, c(2:37)])
+plates_df_5 <- convertplate.todf(plates[46:53, c(2:37)])
+
+breeder_plates <- lapply(ls(pattern="plates_df_\\d+"), get)
+names(breeder_plates) <- lapply(ls(pattern="plates_df_\\d+"), deparse) %>% unlist()
+breeder_plates_df <- breeder_plates %>% 
+  rbindlist(idcol = "plate") %>% 
+  mutate(plate = parse_number(plate)) %>% 
+  subset(!is.na(fish_id)) %>% 
+  mutate(fish_id = gsub("-","_", fish_id),
+         fish_id = gsub(" ", "", fish_id))  %>% 
+  mutate(sex = str_match(fish_id, "[MF]"))
 
 
 
