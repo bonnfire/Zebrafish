@@ -26,6 +26,9 @@ genotyped_fish_subset_replace_mer <- genotyped_fish_subset_replace %>%
   subset(as.numeric(mendelian_error_rate) < 0.05 & !(father %in% c("Z2622_M35", "Z2622_M34"))) %>% 
   add_count(father, mother) %>% 
   subset(n >= 3) %>% 
-  select(larva_id, father, mother)
+  select(larva_id, father, mother) %>% 
+  rbind(genotyped_fish_subset_replace %>% select(larva_id, father, mother) %>% 
+          subset(father == "Z2622_M35"&mother == "Z2622_F30"|father == "Z2622_M35"&mother=="Z2622_F27"|father == "Z2622_M34"&mother =="Z2622_F27")) %>% 
+  distinct()
 
-write.csv(genotyped_fish_subset_replace_mer, "~/Dropbox (Palmer Lab)/Palmer Lab/Bonnie Lin/Zebrafish/csv files/pasi_larvae_parents_n1247.csv", row.names = F)
+write.csv(genotyped_fish_subset_replace_mer, "~/Dropbox (Palmer Lab)/Palmer Lab/Bonnie Lin/Zebrafish/csv files/pasi_larvae_parents_n1283.csv", row.names = F)
