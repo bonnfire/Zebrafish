@@ -9,24 +9,23 @@
 genotyped_fish_mer <- read.csv("~/Dropbox (Palmer Lab)/Palmer Lab/Bonnie Lin/Zebrafish/fishes_QC_MER_20210224.csv") %>% 
   mutate_all(as.character) %>% 
   clean_names 
+
 genotyped_fish_subset <- genotyped_fish_mer %>% 
   subset(!((father == "Z2622_M35" & mother == "Z2622_F32")|
-             # (father == "Z2622_M34" & mother == "Z2622_M39")| ##
              (father == "Z2622_M26a" & mother == "Z2622_F20")|
-             # (father == "Z2622_F32" & mother == "Z2622_F30")| ##
              (father == "Z2622_M38" & mother == "Z2622_F32")|
-             # (father == "Z2622_M38" & mother == "Z2622_F20")|
-             (father == "Z2622_M39" & mother == "Z2622_F32"))) %>% 
-           # |
-             # (father == "Z2622_M39" & mother == "Z2622_F20")))
+             (father == "Z2622_M39" & mother == "Z2622_F32")))
+
+genotyped_fish_subset_replace = genotyped_fish_subset %>% 
   mutate(replace = ifelse(father %in% c("Z2622_M35", "Z2622_M34"), "yes", "no")) %>% 
-  mutate(father = replace(father, father == "Z2622_M34"&mother == "Z2622_F30", "Z2622_M35"),
-         replace = replace(father, father == "Z2622_M34"&mother == "Z2622_F27", "no"), 
-         father = replace(father, father == "Z2622_M34"&mother == "Z2622_F27", "Z2622_M35"),
-         father = replace(father, father == "Z2622_M35"&mother == "Z2622_F27"&replace == "yes", "Z2622_M34")) %>% 
-  subset(as.numeric(mendelian_error_rate) > 0.05) %>% 
+  mutate(replace = replace(replace, father == "Z2622_M34", "no"), 
+        father = replace(father, father == "Z2622_M34", "Z2622_M35"),
+         father = replace(father, father == "Z2622_M35"&replace == "yes", "Z2622_M34")) 
+
+genotyped_fish_subset_replace_mer <- genotyped_fish_subset_replace %>% 
+  subset(as.numeric(mendelian_error_rate) < 0.05 & !(father %in% c("Z2622_M35", "Z2622_M34"))) %>% 
   add_count(father, mother) %>% 
   subset(n >= 3) %>% 
-  select(larva_id, father, mother) %>% 
-  subset(father %in% deepseq_breeders$breeder_id & mother %in% deepseq_breeders$breeder_id) # from create csv breeders object
-write.csv(genotyped_fish_subset, "~/Dropbox (Palmer Lab)/Palmer Lab/Bonnie Lin/Zebrafish/csv files/pasi_larvae_parents_n73.csv", row.names = F)
+  select(larva_id, father, mother)
+
+write.csv(genotyped_fish_subset_replace_mer, "~/Dropbox (Palmer Lab)/Palmer Lab/Bonnie Lin/Zebrafish/csv files/pasi_larvae_parents_n1247.csv", row.names = F)
