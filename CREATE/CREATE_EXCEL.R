@@ -65,7 +65,7 @@ gh_12 <- gh_12 %>%
   mutate_all(~gsub("-","_",.))
 openxlsx::write.xlsx(gh_12, "~/Dropbox (Palmer Lab)/Palmer Lab/Bonnie Lin/github/Zebrafish/CREATE/gh_classification_n147.xlsx")
 
-write.csv(gh_12, "~/Dropbox (Palmer Lab)/Palmer Lab/Bonnie Lin/Zebrafish/csv files/gh_classification_n147.csv", row.names = F)
+write.csv(gh_12, "~/Dropbox (Palmer Lab)/Palmer Lab/Bonnie Lin/Zebrafish/csv files/gh_classification_n147_updated.csv", row.names = F)
 
 # for db 
 gh_12 %>% 
