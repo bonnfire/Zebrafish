@@ -18,6 +18,10 @@ breeder_plates_df_db <- breeder_plates_df %>%
   rename("rfid" = "fish_id")
 write.csv(breeder_plates_df_db, "~/Desktop/Database/csv files/sample_tracking/zebrafish_breeder_n350.csv", row.names = F)
 
+read.csv( "~/Desktop/Database/csv files/sample_tracking/zebrafish_breeder_n350.csv", stringsAsFactors = F) %>%
+  select(rfid, sex) %>% 
+  write.csv("~/Desktop/Database/csv files/r01_su_guo_breeders/zebrafish_breeder_n350.csv", row.names = F)
+
 
 ## list of breeders that have been deep seqed
 # separate submissions, read in and combine

@@ -15,6 +15,13 @@ pedigree_ggl <- Zebrafish_Guo_xl_wcleannames %>%
 pedigree_ggl %>% write.csv("~/Dropbox (Palmer Lab)/Palmer Lab/Bonnie Lin/Zebrafish/csv files/pedigree_fish_n6580_20210114.csv", row.names = F)
 
 
+# include the breeders 
+read.csv("~/Dropbox (Palmer Lab)/Palmer Lab/Bonnie Lin/Zebrafish/csv files/pedigree_fish_n6580_20210114.csv", stringsAsFactors = F) %>% 
+  rbind(breeder_plates_df %>% 
+          mutate(fish_id = fish_id, dna_collected_y_n = NA, mother = NA, father = NA) %>% 
+          select(fish_id, dna_collected_y_n, mother, father)) %>% 
+  write.csv("~/Dropbox (Palmer Lab)/Palmer Lab/Bonnie Lin/Zebrafish/csv files/pedigree_fish_n6991_20210816.csv", row.names = F)
+
 
 pedigree_fish <- read.csv("~/Dropbox (Palmer Lab)/Palmer Lab/Bonnie Lin/Zebrafish/pedigree_fish.csv") %>% 
   mutate_all(as.character) 

@@ -142,8 +142,6 @@ breeder_plates_df <- breeder_plates %>%
   mutate(sex = str_match(fish_id, "[MF]"))
 
 
-
-
 # current breeders
 Zebrafish_breeders <- gsheet::gsheet2tbl('https://docs.google.com/spreadsheets/d/1NMMBpsPf4VDDckpZL2Qwrro5f3hqXpCTGGYYFKP4Hxc/edit#gid=1101471263')
 Zebrafish_breeders_df <- Zebrafish_breeders %>% 
